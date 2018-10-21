@@ -2,48 +2,50 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"sort"
 
-	"./inverted"
+	"github.com/polis-mail-ru-golang-1/t2-invert-index-search-Elman309/inverted"
 )
 
-type DocumentResult struct {
-	docName         string
-	occurencesCount int
+type rankedDocument struct {
+	name string
+	rank int
 }
 
-func testFiles(text string, fileNames ...string) {
-	docs := make([]inverted.IndexedDocument, 0)
-	for _, fileName := range fileNames {
-		doc := inverted.NewIndexedDocument()
-		doc.UpdateFromFile(fileName)
-		docs = append(docs, doc)
+func updateFromFile(index inverted.Index, fileName string) {
+	data, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		panic(err)
 	}
-
-	tokens := inverted.Tokenize(text)
-	occurences := make([]int, len(docs))
-
+	tokens := inverted.Tokenize(string(data))
 	for _, token := range tokens {
-		for i, doc := range docs {
-			occurences[i] += doc.GetOccurencesCount(token)
-		}
+		index.Update(token, fileName)
 	}
+}
 
-	docResults := make([]DocumentResult, len(docs))
-	for i := range docs {
-		docResults[i] = DocumentResult{docs[i].Name, occurences[i]}
+func formatRanked(rankedDocs map[string]int) {
+	result := make([]rankedDocument, 0)
+	for doc := range rankedDocs {
+		result = append(result, rankedDocument{name: doc, rank: rankedDocs[doc]})
 	}
-
-	sort.Slice(docResults[:], func(i, j int) bool {
-		return docResults[i].occurencesCount > docResults[j].occurencesCount
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].rank > result[j].rank
 	})
-
-	for _, res := range docResults {
-		if res.occurencesCount > 0 {
-			fmt.Printf(" - %s;\tсовпадений -\t %d\n", res.docName, res.occurencesCount)
-		}
+	for _, doc := range result {
+		fmt.Printf(" - %s;\t совпадений - %d \n", doc.name, doc.rank)
 	}
+}
+
+func testFiles(query string, fileNames ...string) {
+	index := inverted.NewIndex()
+	for _, fileName := range fileNames {
+		updateFromFile(index, fileName)
+	}
+
+	rankedDocs := index.ProcessQuery(query)
+	formatRanked(rankedDocs)
 }
 
 func main() {
@@ -52,7 +54,7 @@ func main() {
 	}
 
 	fileNames := os.Args[1 : len(os.Args)-1]
-	text := os.Args[len(os.Args)-1]
+	query := os.Args[len(os.Args)-1]
 
-	testFiles(text, fileNames...)
+	testFiles(query, fileNames...)
 }
