@@ -1,42 +1,42 @@
 package inverted
 
-import (
-	"io/ioutil"
-)
+// Index structure : token -> document name -> occurences count
+type Index map[string]map[string]int
 
-type IndexedDocument struct {
-	Name  string
-	Index map[string]int
+// NewIndex default constructor for Index
+func NewIndex() Index {
+	return make(Index)
 }
 
-func NewIndexedDocument() IndexedDocument {
-	var doc IndexedDocument
-	doc.Name = ""
-	doc.Index = make(map[string]int)
-	return doc
-}
-
-func (doc IndexedDocument) Update(token string) {
-	_, prs := doc.Index[token]
+// Update updates index with token from docName
+func (index Index) Update(token string, docName string) {
+	_, prs := index[token]
 	if prs {
-		doc.Index[token]++
+		index[token][docName]++
 	} else {
-		doc.Index[token] = 1
+		index[token] = make(map[string]int)
+		index[token][docName] = 1
 	}
 }
 
-func (doc *IndexedDocument) UpdateFromFile(fileName string) {
-	doc.Name = fileName
-	data, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		panic(err)
+// ProcessQuery returns map of documents related to their rank (sum of token weights)
+func (index Index) ProcessQuery(query string) map[string]int {
+	queryTokens := Tokenize(query)
+	result := make(map[string]int)
+	for _, token := range queryTokens {
+		result = merge(result, index[token])
 	}
-	tokens := Tokenize(string(data))
-	for _, token := range tokens {
-		doc.Update(token)
-	}
+	return result
 }
 
-func (doc IndexedDocument) GetOccurencesCount(token string) int {
-	return doc.Index[token]
+func merge(dest map[string]int, src map[string]int) map[string]int {
+	for key := range src {
+		_, prs := dest[key]
+		if prs {
+			dest[key] += src[key]
+		} else {
+			dest[key] = src[key]
+		}
+	}
+	return dest
 }
