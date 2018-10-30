@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"sort"
+	"sync"
 
 	"github.com/polis-mail-ru-golang-1/t2-invert-index-search-Elman309/inverted"
 )
@@ -39,12 +40,27 @@ func formatRanked(rankedDocs map[string]int) {
 }
 
 func testFiles(query string, fileNames ...string) {
-	index := inverted.NewIndex()
-	for _, fileName := range fileNames {
-		updateFromFile(index, fileName)
-	}
+	// keeping separate index for every file
+	// merging them into single one seems to be useless (not sure)
+	indices := make(map[string]inverted.Index, len(fileNames))
 
-	rankedDocs := index.ProcessQuery(query)
+	// concurrently indexate files
+	var wg sync.WaitGroup
+	wg.Add(len(fileNames))
+	for _, fileName := range fileNames {
+		indices[fileName] = inverted.NewIndex()
+		go func(idx inverted.Index, fn string) {
+			defer wg.Done()
+			updateFromFile(idx, fn)
+		}(indices[fileName], fileName)
+	}
+	wg.Wait()
+	// finished indexing
+
+	rankedDocs := make(map[string]int, len(fileNames))
+	for _, idx := range indices {
+		inverted.ResultMerge(rankedDocs, idx.ProcessQuery(query))
+	}
 	formatRanked(rankedDocs)
 }
 
@@ -55,6 +71,7 @@ func main() {
 
 	fileNames := os.Args[1 : len(os.Args)-1]
 	query := os.Args[len(os.Args)-1]
-
+	// precompiling regexp
+	inverted.InitTokenize()
 	testFiles(query, fileNames...)
 }

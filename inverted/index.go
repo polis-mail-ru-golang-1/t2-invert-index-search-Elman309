@@ -24,19 +24,7 @@ func (index Index) ProcessQuery(query string) map[string]int {
 	queryTokens := Tokenize(query)
 	result := make(map[string]int)
 	for _, token := range queryTokens {
-		result = merge(result, index[token])
+		result = ResultMerge(result, index[token])
 	}
 	return result
-}
-
-func merge(dest map[string]int, src map[string]int) map[string]int {
-	for key := range src {
-		_, prs := dest[key]
-		if prs {
-			dest[key] += src[key]
-		} else {
-			dest[key] = src[key]
-		}
-	}
-	return dest
 }
