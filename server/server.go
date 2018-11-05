@@ -14,7 +14,7 @@ type IndexServer struct {
 	address string
 }
 
-// New ...
+// New creates new instance of IndexServer with given parameters
 func New(index inverted.Index, address string) IndexServer {
 	return IndexServer{
 		index:   index,
@@ -22,7 +22,7 @@ func New(index inverted.Index, address string) IndexServer {
 	}
 }
 
-// Start ...
+// Start starts HTTP server to maintain IndexServer
 func (server IndexServer) Start() error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", server.Search)
@@ -37,14 +37,15 @@ func (server IndexServer) Start() error {
 	return httpServer.ListenAndServe()
 }
 
-// Search ...
+// Search processes search queries for IndexServer
 func (server IndexServer) Search(w http.ResponseWriter, r *http.Request) {
-	search := r.URL.Query().Get("q")
-	if len(search) == 0 {
+	query := r.URL.Query().Get("q")
+	if len(query) == 0 {
 		fmt.Fprintf(w, "Usage: %s/?q=query\n", server.address)
 		return
 	}
-	result := server.index.ProcessQuery(search)
+	fmt.Fprintln(w, "Query: ", query)
+	result := server.index.ProcessQuery(query)
 	for doc, score := range result {
 		fmt.Fprintln(w, doc, " -- ", score)
 	}
