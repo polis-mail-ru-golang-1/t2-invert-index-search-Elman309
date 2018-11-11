@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf8">
+        <title>Поиск</title>
+    </head>
+    <body>
+        <form name="search" method="GET">
+            Введите запрос:
+            <input type="text" name="q">
+        </form>
+        {{if not .Empty}}
+            Результаты:
+            <table>
+                <tr>
+                    <th>Файл</th>
+                    <th>Сумма вхождений</th>
+                    <th>Слова</th>
+                </tr>
+                {{range .Results}}
+                <tr>
+                    <th>{{.FileName}}</th>
+                    <th>{{.CountSum}}</th>
+                    <th>{{.Words}}</th>
+                </tr>
+                {{end}}
+            </table>
+        {{else}}
+            Результаты отсутствуют.
+        {{end}}
+    </body>
+</html>
