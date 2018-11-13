@@ -1,18 +1,18 @@
 package model
 
-// Word ...
+// Word alias for public.words row
 type Word struct {
 	ID   int    `sql:"id"`
 	Word string `sql:"word"`
 }
 
-// File ...
+// File alias for public.files row
 type File struct {
 	ID   int    `sql:"id"`
 	Name string `sql:"name"`
 }
 
-// Occurence ...
+// Occurence alias for public.occurences row
 type Occurence struct {
 	ID     int `sql:"id"`
 	WordID int `sql:"word_id"`
@@ -20,7 +20,7 @@ type Occurence struct {
 	Count  int `sql:"count"`
 }
 
-// Result ...
+// Result alias for search query result
 type Result struct {
 	FileName string   `sql:"file_name"`
 	CountSum int      `sql:"sum"`

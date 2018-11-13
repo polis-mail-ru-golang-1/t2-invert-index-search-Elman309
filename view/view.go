@@ -3,22 +3,33 @@ package view
 import (
 	"html/template"
 	"io"
-	"log"
 
-	"github.com/Elman309/invert-index/model"
+	"github.com/polis-mail-ru-golang-1/t2-invert-index-search-Elman309/model"
 )
 
 // View realizes MVC view entity
 type View struct {
-	LayoutTemplate *template.Template
+	IndexT   *template.Template
+	ResultsT *template.Template
+	UploadT  *template.Template
 }
 
-// New ...
+// New returns View based on given template files
 func New() View {
 	var view View
 	var err error
 
-	view.LayoutTemplate, err = template.ParseFiles("view/layout.html")
+	view.IndexT, err = template.ParseFiles("templates/layout.html", "templates/index.html")
+	if err != nil {
+		panic(err)
+	}
+
+	view.ResultsT, err = template.ParseFiles("templates/layout.html", "templates/results.html")
+	if err != nil {
+		panic(err)
+	}
+
+	view.UploadT, err = template.ParseFiles("templates/layout.html", "templates/upload.html")
 	if err != nil {
 		panic(err)
 	}
@@ -26,22 +37,28 @@ func New() View {
 	return view
 }
 
-// Results ...
-type Results struct {
+type viewResults struct {
 	Results []model.Result
+	Query   string
 	Empty   bool
 }
 
-// ResultsView ...
-func (view View) ResultsView(results []model.Result, w io.Writer) error {
-	log.Println("view with results called")
-	return view.LayoutTemplate.
-		Execute(w, Results{Results: results, Empty: false})
+// IndexView ...
+func (view View) IndexView(w io.Writer) error {
+	return view.IndexT.ExecuteTemplate(w, "layout", nil)
 }
 
-// SearchView ...
-func (view View) SearchView(w io.Writer) error {
-	log.Println("empty view called")
-	return view.LayoutTemplate.
-		Execute(w, Results{Empty: true})
+// ResultsView ...
+func (view View) ResultsView(results []model.Result, query string, w io.Writer) error {
+	return view.ResultsT.ExecuteTemplate(w, "layout",
+		viewResults{
+			Results: results,
+			Query:   query,
+			Empty:   len(results) == 0,
+		})
+}
+
+// UploadView ...
+func (view View) UploadView(w io.Writer) error {
+	return view.UploadT.ExecuteTemplate(w, "layout", nil)
 }

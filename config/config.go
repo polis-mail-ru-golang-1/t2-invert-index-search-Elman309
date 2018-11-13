@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 )
 
-// Config ...
+// Config implements configuration entity
 type Config struct {
 	Address       string
 	Username      string
@@ -14,7 +14,7 @@ type Config struct {
 	ServerAddress string
 }
 
-// Load ...
+// Load returns config entity loaded from file
 func Load() Config {
 	data, err := ioutil.ReadFile("config.json")
 	if err != nil {

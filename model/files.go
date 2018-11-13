@@ -2,6 +2,7 @@ package model
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -24,34 +25,41 @@ func getValidFiles() []string {
 	return validFiles
 }
 
-func updateFromFile(index Index, fileName string) {
-	data, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		panic(err)
-	}
-	tokens := Tokenize(string(data))
-	index.Update(fileName, tokens...)
-}
-
 // Build concurrently builds inverted index for all files
 func (m Model) Build(files ...string) {
-	//index := NewIndex()
+	log.Println(files) // debug
 	indexReceiver := make(chan Index, len(files))
 	for _, file := range files {
-		m.Files[file] = m.AddFile(file).ID
+		_, prs := m.Files[file]
+		if !prs {
+			m.Files[file] = m.AddFile(file).ID
+		}
 		go func(fn string) {
 			tempIndex := NewIndex()
-			updateFromFile(tempIndex, fn)
+			data, err := ioutil.ReadFile(fn)
+			if err != nil {
+				panic(err)
+			}
+			tempIndex.UpdateFromString(fn, string(data))
 			indexReceiver <- tempIndex
 		}(file)
 	}
 
 	for range files {
-		m.Index.Merge(<-indexReceiver)
+		IndexMerge(m.Index, <-indexReceiver)
 	}
 }
 
 // BuildAll is calling Build based on GetValidFiles result
 func (m Model) BuildAll() {
 	m.Build(getValidFiles()...)
+}
+
+// BuildFromString ...
+func (m Model) BuildFromString(fileName string, str string) {
+	_, prs := m.Files[fileName]
+	if !prs {
+		m.Files[fileName] = m.AddFile(fileName).ID
+	}
+	m.Index.UpdateFromString(fileName, str)
 }

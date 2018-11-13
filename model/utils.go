@@ -11,7 +11,7 @@ var re *regexp.Regexp
 // InitTokenize precompiles regexp used by Tokenize
 func InitTokenize() {
 	re = regexp.MustCompile("[\\p{L}\\d']+")
-	log.Println("tokenizer RE initialized")
+	log.Println("tokenizer initialized")
 }
 
 // Tokenize splits str by word-like substrings defined by regexp

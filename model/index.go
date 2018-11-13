@@ -12,42 +12,48 @@ func NewIndex() Index {
 }
 
 // Update updates index with tokens from docName
-func (index Index) Update(docName string, tokens ...string) {
+func (index Index) Update(fileName string, tokens ...string) {
 	for _, token := range tokens {
 		_, prs := index[token]
 		if prs {
-			index[token][docName]++
+			index[token][fileName]++
 		} else {
 			index[token] = make(Files)
-			index[token][docName] = 1
+			index[token][fileName] = 1
 		}
 	}
 }
 
-// ProcessQuery returns map of Files related to their rank (sum of token weights)
-// TODO: Planned to make it deprecated
-func (index Index) ProcessQuery(query string) Files {
-	queryTokens := Tokenize(query)
-	result := make(Files)
-	for _, token := range queryTokens {
-		result = result.merge(index[token])
-	}
-	return result
+// UpdateFromString ...
+func (index Index) UpdateFromString(fileName string, str string) {
+	tokens := Tokenize(str)
+	index.Update(fileName, tokens...)
 }
 
-// Merge merges two inverted indices
-func (index Index) Merge(src Index) {
+// IndexMerge merges two inverted indices
+/* func (index Index) IndexMerge(src Index) {
 	for token := range src {
 		_, prs := index[token]
 		if prs {
-			index[token].merge(src[token])
+			index[token].FilesMerge(src[token])
 		} else {
 			index[token] = src[token]
 		}
 	}
+} */
+func IndexMerge(dest Index, src Index) {
+	for token := range src {
+		_, prs := dest[token]
+		if prs {
+			dest[token] = FilesMerge(dest[token], src[token])
+		} else {
+			dest[token] = src[token]
+		}
+	}
 }
 
-func (files Files) merge(src Files) Files {
+// FilesMerge ...
+/* func (files Files) FilesMerge(src Files) Files {
 	for key := range src {
 		_, prs := files[key]
 		if prs {
@@ -57,4 +63,15 @@ func (files Files) merge(src Files) Files {
 		}
 	}
 	return files
+} */
+func FilesMerge(dest Files, src Files) Files {
+	for key := range src {
+		_, prs := dest[key]
+		if prs {
+			dest[key] += src[key]
+		} else {
+			dest[key] = src[key]
+		}
+	}
+	return dest
 }

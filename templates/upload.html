@@ -1,0 +1,8 @@
+{{ define "content" }}
+    Введите имя файла и вставьте его содержимое
+    <form name="upload" method="POST">
+        <p><input name="filename" type="text" size="40"></p>
+        <p><textarea name="content" rows="15" cols="40"></textarea></p>
+        <p><button>Отправить</button></p>
+    </form>
+{{ end }}
