@@ -33,13 +33,15 @@ func main() {
 		db,
 		model.NewIndex(),
 	)
-
 	c := controller.Controller{
 		View:  view.New(),
 		Model: m,
 	}
+
 	s := Server{controller: c}
-	c.AddFilesAll()
+	if config.FirstStart {
+		c.AddFilesAll()
+	}
 	s.Start(config.ServerAddress)
 }
 

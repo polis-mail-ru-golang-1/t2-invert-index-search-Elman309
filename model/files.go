@@ -2,7 +2,6 @@ package model
 
 import (
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 )
@@ -27,7 +26,6 @@ func getValidFiles() []string {
 
 // Build concurrently builds inverted index for all files
 func (m Model) Build(files ...string) {
-	log.Println(files) // debug
 	indexReceiver := make(chan Index, len(files))
 	for _, file := range files {
 		_, prs := m.Files[file]
@@ -55,7 +53,7 @@ func (m Model) BuildAll() {
 	m.Build(getValidFiles()...)
 }
 
-// BuildFromString ...
+// BuildFromString updates index with str content
 func (m Model) BuildFromString(fileName string, str string) {
 	_, prs := m.Files[fileName]
 	if !prs {

@@ -12,6 +12,7 @@ type Config struct {
 	Password      string
 	Database      string
 	ServerAddress string
+	FirstStart    bool
 }
 
 // Load returns config entity loaded from file
